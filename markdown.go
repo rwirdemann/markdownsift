@@ -1,11 +1,40 @@
 package markdownsift
 
 import (
+	"fmt"
 	"io"
+	"os"
 	"regexp"
 	"strings"
 )
 
+// ListFiles returns a list of files in the given path that match the given pattern.
+func ListFiles(path string, pattern string) ([]string, error) {
+	var matchingFiles []string
+
+	// Compile the regex pattern
+	regex, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, fmt.Errorf("invalid pattern '%s': %w", pattern, err)
+	}
+
+	// Read the directory
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read directory '%s': %w", path, err)
+	}
+
+	// Filter files that match the pattern
+	for _, entry := range entries {
+		if !entry.IsDir() && regex.MatchString(entry.Name()) {
+			matchingFiles = append(matchingFiles, entry.Name())
+		}
+	}
+
+	return matchingFiles, nil
+}
+
+// CollectHashtaggedContent returns a map of hashtags to their content blocks.
 func CollectHashtaggedContent(reader io.Reader) map[string][]string {
 	result := make(map[string][]string)
 
