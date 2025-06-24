@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/rwirdemann/markdownsift"
 )
@@ -18,20 +19,26 @@ func main() {
 		return
 	}
 
+	var snippets = map[string][]string{}
 	for _, file := range files {
-		fmt.Printf("Processing file: %s\n", file)
+		func() {
+			fmt.Printf("Processing file: %s\n", file)
+			file, err := os.Open(filepath.Join(*path, file))
+			if err != nil {
+				fmt.Printf("Error opening file: %v\n", err)
+				return
+			}
+			defer func(file *os.File) {
+				_ = file.Close()
+			}(file)
+			result := markdownsift.CollectHashtaggedContent(file)
+			for tag, blocks := range result {
+				snippets[tag] = append(snippets[tag], blocks...)
+			}
+		}()
 	}
 
-	file, err := os.Open("/Users/ralfwirdemann/Documents/zettelkasten/2025-06-20.md")
-	if err != nil {
-		fmt.Printf("Error opening file: %v\n", err)
-		return
-	}
-	defer file.Close()
-
-	result := markdownsift.CollectHashtaggedContent(file)
-
-	for tag, blocks := range result {
+	for tag, blocks := range snippets {
 		fmt.Printf("%s:\n", tag)
 		for i, block := range blocks {
 			fmt.Printf("Block %d:\n%s\n\n", i+1, block)
