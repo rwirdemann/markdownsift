@@ -1,0 +1,4 @@
+# Feature: Headed Blocks
+
+Ein Headed Block ist ein Block mit einer Überschrift, die ein Tag enthält. Der Block endet nicht wie sonst mit einer
+leeren Zeile, sondern wenn das Dokument endet oder ein anderer Headed Block beginnt.
