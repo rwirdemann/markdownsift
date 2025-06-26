@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"os"
 
 	"github.com/rwirdemann/markdownsift"
 )
@@ -10,12 +10,9 @@ import (
 func main() {
 	path := flag.String("path", "/Users/ralfwirdemann/Documents/zettelkasten", "source directory to parse")
 	flag.Parse()
-
-	snippets := markdownsift.CollectSnippets(*path)
-	for tag, blocks := range snippets {
-		fmt.Printf("%s:\n", tag)
-		for i, block := range blocks {
-			fmt.Printf("Block %d:\n%s\n\n", i+1, block)
-		}
+	if *path == "" {
+		flag.Usage()
+		os.Exit(1)
 	}
+	markdownsift.WriteSnippets(os.Stdout, markdownsift.CollectSnippets(*path))
 }
