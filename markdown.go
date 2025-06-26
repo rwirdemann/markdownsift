@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 )
 
 const (
@@ -15,16 +16,22 @@ const (
 	DefaultPattern = "^\\d{4}-\\d{2}-\\d{2}\\.md$"
 )
 
+// Block represents a content block with its associated date
+type Block struct {
+	Content string
+	Date    time.Time
+}
+
 // CollectSnippets scans the specified directory and returns a map of hashtags to associated content snippets. The
 // hashtags and content are extracted from the files that match the predefined pattern in the directory.
-func CollectSnippets(path string) map[string][]string {
+func CollectSnippets(path string) map[string][]Block {
 	files, err := listFiles(path)
 	if err != nil {
 		fmt.Printf("Error listing files: %v\n", err)
 		return nil
 	}
 
-	var snippets = map[string][]string{}
+	var snippets = map[string][]Block{}
 	for _, file := range files {
 		func() {
 			file, err := os.Open(file)
@@ -45,12 +52,12 @@ func CollectSnippets(path string) map[string][]string {
 }
 
 // WriteSnippets writes the snippets matching the given tags to the specified writer.
-func WriteSnippets(writer io.Writer, snippets map[string][]string, tags []string) {
+func WriteSnippets(writer io.Writer, snippets map[string][]Block, tags []string) {
 	for tag, blocks := range snippets {
 		if len(tags) == 0 || slices.Contains(tags, tag) {
 			fmt.Fprintf(writer, "%s:\n", tag)
 			for i, block := range blocks {
-				fmt.Fprintf(writer, "Block %d:\n%s\n\n", i+1, block)
+				fmt.Fprintf(writer, "Block %d (%s):\n%s\n\n", i+1, block.Date.Format("2006-01-02 15:04:05"), block.Content)
 			}
 		}
 	}
@@ -87,8 +94,8 @@ func listFiles(path string) ([]string, error) {
 // collectHashtaggedContent reads content from the given reader and returns a map of tags pointing to snippets tagged
 // with the hashtag. It handles both regular blocks (ending at empty lines) and headed blocks (ending at next headed
 // block or end of document).
-func collectHashtaggedContent(reader io.Reader) map[string][]string {
-	result := make(map[string][]string)
+func collectHashtaggedContent(reader io.Reader) map[string][]Block {
+	result := make(map[string][]Block)
 
 	// Read all content
 	content, err := io.ReadAll(reader)
@@ -139,8 +146,12 @@ func collectHashtaggedContent(reader io.Reader) map[string][]string {
 
 			// Add the block to each hashtag
 			blockText := strings.Join(block, "\n")
+			blockInstance := Block{
+				Content: blockText,
+				Date:    time.Now(),
+			}
 			for _, hashtag := range hashtags {
-				result[hashtag] = append(result[hashtag], blockText)
+				result[hashtag] = append(result[hashtag], blockInstance)
 			}
 
 			// Skip the lines we've already processed

@@ -2,3 +2,8 @@
 
 Ein Headed Block ist ein Block mit einer Überschrift, die ein Tag enthält. Der Block endet nicht wie sonst mit einer
 leeren Zeile, sondern wenn das Dokument endet oder ein anderer Headed Block beginnt.
+
+# Feature: Add date to blocks
+
+Ein Tag enthält mehere Blocksm gespeichert als string slice. Ändere den Typ der Slice in ein struct, dass neben dem
+string ein date enthält, das per default auf das heute datum gesetzt wird.
