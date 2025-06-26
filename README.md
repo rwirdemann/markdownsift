@@ -4,18 +4,18 @@ A Go library for extracting and organizing hashtag-grouped content blocks from m
 
 ## Overview
 
-`markdownsift` scans markdown files in a directory and extracts content blocks that are associated with hashtags (like `#work`, `#personal`, `#urgent`). Each content block is now stored with its content and the date it was processed, making it easy to track when information was collected.
+`markdownsift` scans markdown files in a directory and extracts content blocks that are associated with hashtags (like `#work`, `#personal`, `#urgent`). Each content block is now stored with its content and the date parsed from the filename, making it easy to track when information was originally created.
 
 ## Features
 
 - **Hashtag-based content extraction**: Finds and groups content by hashtags
-- **Timestamped blocks**: Each content block includes the date/time it was processed
+- **Timestamped blocks**: Each content block includes the date parsed from the filename (YYYY-MM-DD format)
 - **Two block types supported**:
   - **Regular blocks**: Content following a hashtag until an empty line
   - **Headed blocks**: Markdown sections starting with headings (`# ## ### ####`) that contain hashtags
 - **Command-line interface**: Easy-to-use CLI for processing markdown files
 - **Tag filtering**: Process only specific hashtags you're interested in
-- **File pattern matching**: Automatically processes files matching `YYYY-MM-DD.md` format
+- **File pattern matching**: Automatically processes files matching `YYYY-MM-DD.md` format and uses the date from filename
 
 ## Installation
 
@@ -56,7 +56,7 @@ Each content block is now represented by a `Block` struct:
 ```go
 type Block struct {
     Content string    // The actual content text
-    Date    time.Time // When the block was processed (set to current time)
+    Date    time.Time // Date parsed from filename (YYYY-MM-DD format)
 }
 ```
 
@@ -104,25 +104,25 @@ Need immediate investigation
 
 ```
 #work:
-Block 1 (2025-06-26 14:30:15):
+Block 1 (2025-06-26 00:00:00):
 ## Morning Tasks #work
 Review pull requests
 Update documentation
 Team standup at 9:30
 
-Block 2 (2025-06-26 14:30:15):
+Block 2 (2025-06-26 00:00:00):
 ## Critical Issue #urgent #work  
 Server downtime reported
 Need immediate investigation
 
 #personal:
-Block 1 (2025-06-26 14:30:15):
+Block 1 (2025-06-26 00:00:00):
 ## Personal Reminder #personal
 Buy groceries after work
 Call dentist to schedule appointment
 
 #urgent:
-Block 1 (2025-06-26 14:30:15):
+Block 1 (2025-06-26 00:00:00):
 ## Critical Issue #urgent #work  
 Server downtime reported
 Need immediate investigation
@@ -131,12 +131,13 @@ Need immediate investigation
 ## How It Works
 
 1. **File Discovery**: Scans the specified directory for files matching the pattern `YYYY-MM-DD.md`
-2. **Content Parsing**: For each file, finds lines containing hashtags using regex `#\w+`
-3. **Block Collection**: 
+2. **Date Parsing**: Extracts the date from each filename (YYYY-MM-DD format)
+3. **Content Parsing**: For each file, finds lines containing hashtags using regex `#\w+`
+4. **Block Collection**: 
    - For regular blocks: Collects content until an empty line
    - For headed blocks: Collects content until the next heading or end of file
-4. **Timestamping**: Each block is stamped with the current date/time when processed
-5. **Grouping**: Organizes blocks by hashtag in a map structure
+5. **Timestamping**: Each block is stamped with the date from the filename (fallback to current time if parsing fails)
+6. **Grouping**: Organizes blocks by hashtag in a map structure
 
 ## Development
 
@@ -177,13 +178,13 @@ Writes the snippets matching the given tags to the specified writer. If `tags` i
 ```go
 type Block struct {
     Content string    // The content text of the block
-    Date    time.Time // Timestamp when the block was processed
+    Date    time.Time // Date parsed from filename (YYYY-MM-DD format)
 }
 ```
 
 ## File Pattern
 
-By default, the library processes files matching the pattern `^\\d{4}-\\d{2}-\\d{2}\\.md$` (e.g., `2025-06-26.md`). This pattern is designed for daily note-taking systems but can be customized by modifying the `DefaultPattern` constant.
+By default, the library processes files matching the pattern `^\\d{4}-\\d{2}-\\d{2}\\.md$` (e.g., `2025-06-26.md`). The date from the filename is parsed and assigned to each content block. This pattern is designed for daily note-taking systems but can be customized by modifying the `DefaultPattern` constant. If date parsing fails, the system falls back to using the current time.
 
 ## License
 

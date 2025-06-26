@@ -34,15 +34,24 @@ func CollectSnippets(path string) map[string][]Block {
 	var snippets = map[string][]Block{}
 	for _, file := range files {
 		func() {
-			file, err := os.Open(file)
+			// Parse date from filename (format: YYYY-MM-DD.md)
+			filename := filepath.Base(file)
+			dateStr := strings.TrimSuffix(filename, ".md")
+			fileDate, err := time.Parse("2006-01-02", dateStr)
+			if err != nil {
+				// Fallback to current time if parsing fails
+				fileDate = time.Now()
+			}
+
+			f, err := os.Open(file)
 			if err != nil {
 				fmt.Printf("Error opening file: %v\n", err)
 				return
 			}
-			defer func(file *os.File) {
-				_ = file.Close()
-			}(file)
-			result := collectHashtaggedContent(file)
+			defer func(f *os.File) {
+				_ = f.Close()
+			}(f)
+			result := collectHashtaggedContent(f, fileDate)
 			for tag, blocks := range result {
 				snippets[tag] = append(snippets[tag], blocks...)
 			}
@@ -94,7 +103,7 @@ func listFiles(path string) ([]string, error) {
 // collectHashtaggedContent reads content from the given reader and returns a map of tags pointing to snippets tagged
 // with the hashtag. It handles both regular blocks (ending at empty lines) and headed blocks (ending at next headed
 // block or end of document).
-func collectHashtaggedContent(reader io.Reader) map[string][]Block {
+func collectHashtaggedContent(reader io.Reader, date time.Time) map[string][]Block {
 	result := make(map[string][]Block)
 
 	// Read all content
@@ -148,7 +157,7 @@ func collectHashtaggedContent(reader io.Reader) map[string][]Block {
 			blockText := strings.Join(block, "\n")
 			blockInstance := Block{
 				Content: blockText,
-				Date:    time.Now(),
+				Date:    date,
 			}
 			for _, hashtag := range hashtags {
 				result[hashtag] = append(result[hashtag], blockInstance)
