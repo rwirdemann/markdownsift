@@ -14,8 +14,8 @@ const (
 	DefaultPattern = "^\\d{4}-\\d{2}-\\d{2}\\.md$"
 )
 
-// CollectSnippets scans the specified directory and returns a map of hashtags to associated content snippets.
-// The hashtags and content are extracted from the files that match the predefined pattern in the directory.
+// CollectSnippets scans the specified directory and returns a map of hashtags to associated content snippets. The
+// hashtags and content are extracted from the files that match the predefined pattern in the directory.
 func CollectSnippets(path string) map[string][]string {
 	files, err := listFiles(path)
 	if err != nil {
@@ -44,7 +44,8 @@ func CollectSnippets(path string) map[string][]string {
 	return snippets
 }
 
-// listFiles returns a list of files in the given path that match the DefaultPattern.
+// listFiles returns a list of files in the given path that match the
+// DefaultPattern.
 func listFiles(path string) ([]string, error) {
 
 	var matchingFiles []string
@@ -72,7 +73,8 @@ func listFiles(path string) ([]string, error) {
 }
 
 // collectHashtaggedContent reads content from the given reader and returns a map of tags pointing to snippets tagged
-// with the hashtag.
+// with the hashtag. It handles both regular blocks (ending at empty lines) and headed blocks (ending at next headed
+// block or end of document).
 func collectHashtaggedContent(reader io.Reader) map[string][]string {
 	result := make(map[string][]string)
 
@@ -85,20 +87,42 @@ func collectHashtaggedContent(reader io.Reader) map[string][]string {
 	lines := strings.Split(string(content), "\n")
 	hashtagRegex := regexp.MustCompile(`#\w+`)
 
+	// First pass: identify headed blocks (hashtag lines that start document sections)
+	headedBlockStarts := make(map[int]bool)
+	for i := range lines {
+		line := strings.TrimSpace(lines[i])
+		if len(line) > 0 && hashtagRegex.MatchString(line) {
+			// Check if this looks like a markdown heading (starts with # ## ### ####)
+			if strings.HasPrefix(line, "# ") || strings.HasPrefix(line, "## ") || strings.HasPrefix(line, "### ") || strings.HasPrefix(line, "#### ") {
+				headedBlockStarts[i] = true
+			}
+		}
+	}
+
+	// Second pass: collect blocks with appropriate termination logic
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		// Find all hashtags in the line
 		hashtags := hashtagRegex.FindAllString(line, -1)
 
 		if len(hashtags) > 0 {
-			// This line contains hashtags, collect the block
 			block := []string{line}
-
-			// Collect following lines until empty line
 			j := i + 1
-			for j < len(lines) && strings.TrimSpace(lines[j]) != "" {
-				block = append(block, lines[j])
-				j++
+
+			if headedBlockStarts[i] {
+				// This is a headed block - collect until next headed block or end of document
+				for j < len(lines) {
+					if headedBlockStarts[j] {
+						break // Stop at next headed block
+					}
+					block = append(block, lines[j])
+					j++
+				}
+			} else {
+				// This is a regular block - collect until empty line
+				for j < len(lines) && strings.TrimSpace(lines[j]) != "" {
+					block = append(block, lines[j])
+					j++
+				}
 			}
 
 			// Add the block to each hashtag
