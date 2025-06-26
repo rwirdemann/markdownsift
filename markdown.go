@@ -26,7 +26,6 @@ func CollectSnippets(path string) map[string][]string {
 	var snippets = map[string][]string{}
 	for _, file := range files {
 		func() {
-			fmt.Printf("Processing file: %s\n", file)
 			file, err := os.Open(file)
 			if err != nil {
 				fmt.Printf("Error opening file: %v\n", err)
@@ -42,6 +41,15 @@ func CollectSnippets(path string) map[string][]string {
 		}()
 	}
 	return snippets
+}
+
+func WriteSnippets(writer io.Writer, snippets map[string][]string) {
+	for tag, blocks := range snippets {
+		fmt.Fprintf(writer, "%s:\n", tag)
+		for i, block := range blocks {
+			fmt.Fprintf(writer, "Block %d:\n%s\n\n", i+1, block)
+		}
+	}
 }
 
 // listFiles returns a list of files in the given path that match the

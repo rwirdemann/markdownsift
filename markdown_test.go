@@ -1,6 +1,7 @@
 package markdownsift
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 )
@@ -265,4 +266,94 @@ More content`
 	if _, exists := result["#test"]; !exists {
 		t.Error("Expected #test hashtag not found")
 	}
+}
+
+func TestWriteSnippets(t *testing.T) {
+	// Sample test data
+	snippets := map[string][]string{
+		"#work": {
+			"Task 1 content\nMore details",
+			"Task 2 content",
+		},
+		"#personal": {
+			"Personal note\nWith multiple lines",
+		},
+	}
+
+	t.Run("write to buffer", func(t *testing.T) {
+		var buf bytes.Buffer
+		WriteSnippets(&buf, snippets)
+
+		output := buf.String()
+
+		// Check that both hashtags are present
+		if !strings.Contains(output, "#work:") {
+			t.Error("Expected #work hashtag in output")
+		}
+		if !strings.Contains(output, "#personal:") {
+			t.Error("Expected #personal hashtag in output")
+		}
+
+		// Check that block numbers are present
+		if !strings.Contains(output, "Block 1:") {
+			t.Error("Expected Block 1 in output")
+		}
+		if !strings.Contains(output, "Block 2:") {
+			t.Error("Expected Block 2 in output")
+		}
+
+		// Check that content is present
+		if !strings.Contains(output, "Task 1 content") {
+			t.Error("Expected task content in output")
+		}
+		if !strings.Contains(output, "Personal note") {
+			t.Error("Expected personal note in output")
+		}
+	})
+
+	t.Run("write to string builder", func(t *testing.T) {
+		var builder strings.Builder
+		WriteSnippets(&builder, snippets)
+
+		output := builder.String()
+
+		// Verify the output contains expected structure
+		lines := strings.Split(output, "\n")
+		var hashtagLines []string
+		for _, line := range lines {
+			if strings.HasSuffix(line, ":") && strings.HasPrefix(line, "#") {
+				hashtagLines = append(hashtagLines, line)
+			}
+		}
+
+		// Should have 2 hashtag headers
+		if len(hashtagLines) != 2 {
+			t.Errorf("Expected 2 hashtag headers, got %d", len(hashtagLines))
+		}
+	})
+
+	t.Run("empty snippets", func(t *testing.T) {
+		var buf bytes.Buffer
+		emptySnippets := make(map[string][]string)
+		WriteSnippets(&buf, emptySnippets)
+
+		if buf.Len() != 0 {
+			t.Error("Expected empty output for empty snippets")
+		}
+	})
+
+	t.Run("single hashtag single block", func(t *testing.T) {
+		var buf bytes.Buffer
+		singleSnippet := map[string][]string{
+			"#test": {"Single line content"},
+		}
+		WriteSnippets(&buf, singleSnippet)
+
+		output := buf.String()
+		expected := "#test:\nBlock 1:\nSingle line content\n\n"
+
+		if output != expected {
+			t.Errorf("Expected:\n%q\nGot:\n%q", expected, output)
+		}
+	})
 }
