@@ -282,7 +282,7 @@ func TestWriteSnippets(t *testing.T) {
 
 	t.Run("write to buffer", func(t *testing.T) {
 		var buf bytes.Buffer
-		WriteSnippets(&buf, snippets)
+		WriteSnippets(&buf, snippets, nil)
 
 		output := buf.String()
 
@@ -313,7 +313,7 @@ func TestWriteSnippets(t *testing.T) {
 
 	t.Run("write to string builder", func(t *testing.T) {
 		var builder strings.Builder
-		WriteSnippets(&builder, snippets)
+		WriteSnippets(&builder, snippets, nil)
 
 		output := builder.String()
 
@@ -335,7 +335,7 @@ func TestWriteSnippets(t *testing.T) {
 	t.Run("empty snippets", func(t *testing.T) {
 		var buf bytes.Buffer
 		emptySnippets := make(map[string][]string)
-		WriteSnippets(&buf, emptySnippets)
+		WriteSnippets(&buf, emptySnippets, nil)
 
 		if buf.Len() != 0 {
 			t.Error("Expected empty output for empty snippets")
@@ -347,13 +347,57 @@ func TestWriteSnippets(t *testing.T) {
 		singleSnippet := map[string][]string{
 			"#test": {"Single line content"},
 		}
-		WriteSnippets(&buf, singleSnippet)
+		WriteSnippets(&buf, singleSnippet, nil)
 
 		output := buf.String()
 		expected := "#test:\nBlock 1:\nSingle line content\n\n"
 
 		if output != expected {
 			t.Errorf("Expected:\n%q\nGot:\n%q", expected, output)
+		}
+	})
+
+	t.Run("filter by specific tags", func(t *testing.T) {
+		var buf bytes.Buffer
+		testSnippets := map[string][]string{
+			"#work": {
+				"Work task 1",
+				"Work task 2",
+			},
+			"#personal": {
+				"Personal note 1",
+			},
+			"#project": {
+				"Project update",
+			},
+		}
+
+		// Only write #work and #project tags
+		tags := []string{"#work", "#project"}
+		WriteSnippets(&buf, testSnippets, tags)
+
+		output := buf.String()
+
+		// Should contain #work and #project
+		if !strings.Contains(output, "#work:") {
+			t.Error("Expected #work hashtag in filtered output")
+		}
+		if !strings.Contains(output, "#project:") {
+			t.Error("Expected #project hashtag in filtered output")
+		}
+		if !strings.Contains(output, "Work task 1") {
+			t.Error("Expected work content in filtered output")
+		}
+		if !strings.Contains(output, "Project update") {
+			t.Error("Expected project content in filtered output")
+		}
+
+		// Should NOT contain #personal
+		if strings.Contains(output, "#personal:") {
+			t.Error("Should not contain #personal hashtag in filtered output")
+		}
+		if strings.Contains(output, "Personal note 1") {
+			t.Error("Should not contain personal content in filtered output")
 		}
 	})
 }
