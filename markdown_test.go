@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCollectHashtaggedContent(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected map[string][]string
+		expected map[string][]Block
 	}{
 		{
 			name: "single hashtag with block",
@@ -20,8 +21,8 @@ This belongs to work block
 And this too
 
 This line is separate`,
-			expected: map[string][]string{
-				"#work": {"This line has #work\nThis belongs to work block\nAnd this too"},
+			expected: map[string][]Block{
+				"#work": {{Content: "This line has #work\nThis belongs to work block\nAnd this too"}},
 			},
 		},
 		{
@@ -31,9 +32,9 @@ Notes from the meeting
 Action items
 
 Another line`,
-			expected: map[string][]string{
-				"#work":    {"Meeting about #work and #project\nNotes from the meeting\nAction items"},
-				"#project": {"Meeting about #work and #project\nNotes from the meeting\nAction items"},
+			expected: map[string][]Block{
+				"#work":    {{Content: "Meeting about #work and #project\nNotes from the meeting\nAction items"}},
+				"#project": {{Content: "Meeting about #work and #project\nNotes from the meeting\nAction items"}},
 			},
 		},
 		{
@@ -45,10 +46,10 @@ Second #work block
 Content of second block
 
 No hashtag here`,
-			expected: map[string][]string{
+			expected: map[string][]Block{
 				"#work": {
-					"First #work block\nContent of first block",
-					"Second #work block\nContent of second block",
+					{Content: "First #work block\nContent of first block"},
+					{Content: "Second #work block\nContent of second block"},
 				},
 			},
 		},
@@ -56,8 +57,8 @@ No hashtag here`,
 			name: "hashtag at end of file without trailing newline",
 			input: `Last #task without newline
 Final content`,
-			expected: map[string][]string{
-				"#task": {"Last #task without newline\nFinal content"},
+			expected: map[string][]Block{
+				"#task": {{Content: "Last #task without newline\nFinal content"}},
 			},
 		},
 		{
@@ -67,23 +68,23 @@ Final content`,
 Another #fast item
 
 #urgent task`,
-			expected: map[string][]string{
-				"#quick":  {"Single #quick note"},
-				"#fast":   {"Another #fast item"},
-				"#urgent": {"#urgent task"},
+			expected: map[string][]Block{
+				"#quick":  {{Content: "Single #quick note"}},
+				"#fast":   {{Content: "Another #fast item"}},
+				"#urgent": {{Content: "#urgent task"}},
 			},
 		},
 		{
 			name:     "empty input",
 			input:    "",
-			expected: map[string][]string{},
+			expected: map[string][]Block{},
 		},
 		{
 			name: "no hashtags",
 			input: `Just regular text
 No tags here
 Multiple lines`,
-			expected: map[string][]string{},
+			expected: map[string][]Block{},
 		},
 		{
 			name: "hashtag with special characters",
@@ -92,9 +93,9 @@ Details about the task
 
 Meeting #meeting123 with numbers
 Meeting notes`,
-			expected: map[string][]string{
-				"#work_project": {"Task #work_project with underscore\nDetails about the task"},
-				"#meeting123":   {"Meeting #meeting123 with numbers\nMeeting notes"},
+			expected: map[string][]Block{
+				"#work_project": {{Content: "Task #work_project with underscore\nDetails about the task"}},
+				"#meeting123":   {{Content: "Meeting #meeting123 with numbers\nMeeting notes"}},
 			},
 		},
 		{
@@ -110,11 +111,11 @@ More content
 
 Third #block elsewhere
 Final content`,
-			expected: map[string][]string{
+			expected: map[string][]Block{
 				"#block": {
-					"First #block here\nBlock content",
-					"Second #block there\nMore content",
-					"Third #block elsewhere\nFinal content",
+					{Content: "First #block here\nBlock content"},
+					{Content: "Second #block there\nMore content"},
+					{Content: "Third #block elsewhere\nFinal content"},
 				},
 			},
 		},
@@ -131,9 +132,9 @@ Another line
 Personal content
 
 With empty lines`,
-			expected: map[string][]string{
-				"#work":     {"# section #work\nContent for work\n\nMore work content\n\nAnother line\n"},
-				"#personal": {"# section #personal\nPersonal content\n\nWith empty lines"},
+			expected: map[string][]Block{
+				"#work":     {{Content: "# section #work\nContent for work\n\nMore work content\n\nAnother line\n"}},
+				"#personal": {{Content: "# section #personal\nPersonal content\n\nWith empty lines"}},
 			},
 		},
 		{
@@ -153,12 +154,12 @@ More task details
 Meeting content
 
 Final notes`,
-			expected: map[string][]string{
+			expected: map[string][]Block{
 				"#task": {
-					"Regular #task item\nTask details",
+					{Content: "Regular #task item\nTask details"},
 				},
-				"#project": {"# heading #project\nProject description\n\nMore project info\n\nAnother #task item\nMore task details\n"},
-				"#meeting": {"# notes #meeting\nMeeting content\n\nFinal notes"},
+				"#project": {{Content: "# heading #project\nProject description\n\nMore project info\n\nAnother #task item\nMore task details\n"}},
+				"#meeting": {{Content: "# notes #meeting\nMeeting content\n\nFinal notes"}},
 			},
 		},
 		{
@@ -167,8 +168,8 @@ Final notes`,
 Last content
 
 With empty line`,
-			expected: map[string][]string{
-				"#final": {"# section #final\nLast content\n\nWith empty line"},
+			expected: map[string][]Block{
+				"#final": {{Content: "# section #final\nLast content\n\nWith empty line"}},
 			},
 		},
 		{
@@ -180,10 +181,10 @@ More details
 
 # notes #personal
 Personal content`,
-			expected: map[string][]string{
-				"#work":     {"# priority #work #urgent\nImportant task content\n\nMore details\n"},
-				"#urgent":   {"# priority #work #urgent\nImportant task content\n\nMore details\n"},
-				"#personal": {"# notes #personal\nPersonal content"},
+			expected: map[string][]Block{
+				"#work":     {{Content: "# priority #work #urgent\nImportant task content\n\nMore details\n"}},
+				"#urgent":   {{Content: "# priority #work #urgent\nImportant task content\n\nMore details\n"}},
+				"#personal": {{Content: "# notes #personal\nPersonal content"}},
 			},
 		},
 		{
@@ -200,10 +201,10 @@ Some final content
 
 ### Another Section #work
 Final section content`,
-			expected: map[string][]string{
-				"#task": {"Regular #task item\nTask details"},
-				"#ai":   {"## Important Section #ai\nContent under the heading\n\nMore content with empty lines\n\nSome final content\n"},
-				"#work": {"### Another Section #work\nFinal section content"},
+			expected: map[string][]Block{
+				"#task": {{Content: "Regular #task item\nTask details"}},
+				"#ai":   {{Content: "## Important Section #ai\nContent under the heading\n\nMore content with empty lines\n\nSome final content\n"}},
+				"#work": {{Content: "### Another Section #work\nFinal section content"}},
 			},
 		},
 	}
@@ -234,9 +235,9 @@ Final section content`,
 				}
 
 				for i, expectedBlock := range expectedBlocks {
-					if actualBlocks[i] != expectedBlock {
+					if actualBlocks[i].Content != expectedBlock.Content {
 						t.Errorf("For hashtag %s, block %d:\nExpected:\n%s\nGot:\n%s",
-							hashtag, i, expectedBlock, actualBlocks[i])
+							hashtag, i, expectedBlock.Content, actualBlocks[i].Content)
 					}
 				}
 			}
@@ -270,13 +271,13 @@ More content`
 
 func TestWriteSnippets(t *testing.T) {
 	// Sample test data
-	snippets := map[string][]string{
+	snippets := map[string][]Block{
 		"#work": {
-			"Task 1 content\nMore details",
-			"Task 2 content",
+			{Content: "Task 1 content\nMore details", Date: time.Now()},
+			{Content: "Task 2 content", Date: time.Now()},
 		},
 		"#personal": {
-			"Personal note\nWith multiple lines",
+			{Content: "Personal note\nWith multiple lines", Date: time.Now()},
 		},
 	}
 
@@ -295,10 +296,10 @@ func TestWriteSnippets(t *testing.T) {
 		}
 
 		// Check that block numbers are present
-		if !strings.Contains(output, "Block 1:") {
+		if !strings.Contains(output, "Block 1 (") {
 			t.Error("Expected Block 1 in output")
 		}
-		if !strings.Contains(output, "Block 2:") {
+		if !strings.Contains(output, "Block 2 (") {
 			t.Error("Expected Block 2 in output")
 		}
 
@@ -334,7 +335,7 @@ func TestWriteSnippets(t *testing.T) {
 
 	t.Run("empty snippets", func(t *testing.T) {
 		var buf bytes.Buffer
-		emptySnippets := make(map[string][]string)
+		emptySnippets := make(map[string][]Block)
 		WriteSnippets(&buf, emptySnippets, nil)
 
 		if buf.Len() != 0 {
@@ -344,31 +345,37 @@ func TestWriteSnippets(t *testing.T) {
 
 	t.Run("single hashtag single block", func(t *testing.T) {
 		var buf bytes.Buffer
-		singleSnippet := map[string][]string{
-			"#test": {"Single line content"},
+		singleSnippet := map[string][]Block{
+			"#test": {{Content: "Single line content", Date: time.Now()}},
 		}
 		WriteSnippets(&buf, singleSnippet, nil)
 
 		output := buf.String()
-		expected := "#test:\nBlock 1:\nSingle line content\n\n"
-
-		if output != expected {
-			t.Errorf("Expected:\n%q\nGot:\n%q", expected, output)
+		// Check that the output contains expected elements rather than exact match
+		// since date format will vary
+		if !strings.Contains(output, "#test:") {
+			t.Error("Expected #test hashtag in output")
+		}
+		if !strings.Contains(output, "Block 1 (") {
+			t.Error("Expected 'Block 1 (' with date in output")
+		}
+		if !strings.Contains(output, "Single line content") {
+			t.Error("Expected content in output")
 		}
 	})
 
 	t.Run("filter by specific tags", func(t *testing.T) {
 		var buf bytes.Buffer
-		testSnippets := map[string][]string{
+		testSnippets := map[string][]Block{
 			"#work": {
-				"Work task 1",
-				"Work task 2",
+				{Content: "Work task 1", Date: time.Now()},
+				{Content: "Work task 2", Date: time.Now()},
 			},
 			"#personal": {
-				"Personal note 1",
+				{Content: "Personal note 1", Date: time.Now()},
 			},
 			"#project": {
-				"Project update",
+				{Content: "Project update", Date: time.Now()},
 			},
 		}
 
