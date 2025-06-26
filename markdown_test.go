@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestExtract(t *testing.T) {
+func TestCollectHashtaggedContent(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
@@ -115,6 +115,94 @@ Final content`,
 					"Second #block there\nMore content",
 					"Third #block elsewhere\nFinal content",
 				},
+			},
+		},
+		{
+			name: "headed blocks with empty lines preserved",
+			input: `# section #work
+Content for work
+
+More work content
+
+Another line
+
+# section #personal
+Personal content
+
+With empty lines`,
+			expected: map[string][]string{
+				"#work":     {"# section #work\nContent for work\n\nMore work content\n\nAnother line\n"},
+				"#personal": {"# section #personal\nPersonal content\n\nWith empty lines"},
+			},
+		},
+		{
+			name: "mixed regular and headed blocks",
+			input: `Regular #task item
+Task details
+
+# heading #project
+Project description
+
+More project info
+
+Another #task item
+More task details
+
+# notes #meeting
+Meeting content
+
+Final notes`,
+			expected: map[string][]string{
+				"#task": {
+					"Regular #task item\nTask details",
+				},
+				"#project": {"# heading #project\nProject description\n\nMore project info\n\nAnother #task item\nMore task details\n"},
+				"#meeting": {"# notes #meeting\nMeeting content\n\nFinal notes"},
+			},
+		},
+		{
+			name: "headed block at document end",
+			input: `# section #final
+Last content
+
+With empty line`,
+			expected: map[string][]string{
+				"#final": {"# section #final\nLast content\n\nWith empty line"},
+			},
+		},
+		{
+			name: "multiple hashtags in headed block",
+			input: `# priority #work #urgent
+Important task content
+
+More details
+
+# notes #personal
+Personal content`,
+			expected: map[string][]string{
+				"#work":     {"# priority #work #urgent\nImportant task content\n\nMore details\n"},
+				"#urgent":   {"# priority #work #urgent\nImportant task content\n\nMore details\n"},
+				"#personal": {"# notes #personal\nPersonal content"},
+			},
+		},
+		{
+			name: "markdown headings as headed blocks",
+			input: `Regular #task item
+Task details
+
+## Important Section #ai
+Content under the heading
+
+More content with empty lines
+
+Some final content
+
+### Another Section #work
+Final section content`,
+			expected: map[string][]string{
+				"#task": {"Regular #task item\nTask details"},
+				"#ai":   {"## Important Section #ai\nContent under the heading\n\nMore content with empty lines\n\nSome final content\n"},
+				"#work": {"### Another Section #work\nFinal section content"},
 			},
 		},
 	}
