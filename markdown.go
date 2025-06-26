@@ -43,6 +43,7 @@ func CollectSnippets(path string) map[string][]string {
 	return snippets
 }
 
+// WriteSnippets writes the snippets to the specified writer.
 func WriteSnippets(writer io.Writer, snippets map[string][]string) {
 	for tag, blocks := range snippets {
 		fmt.Fprintf(writer, "%s:\n", tag)
