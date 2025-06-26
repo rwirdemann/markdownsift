@@ -212,7 +212,7 @@ Final section content`,
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reader := strings.NewReader(tt.input)
-			result := collectHashtaggedContent(reader)
+			result := collectHashtaggedContent(reader, time.Now())
 
 			// Check if we have the expected number of hashtags
 			if len(result) != len(tt.expected) {
@@ -254,7 +254,7 @@ Another #test item
 More content`
 
 	reader := strings.NewReader(input)
-	result := collectHashtaggedContent(reader)
+	result := collectHashtaggedContent(reader, time.Now())
 
 	if len(result) != 2 {
 		t.Errorf("Expected 2 hashtags, got %d", len(result))
