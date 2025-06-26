@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -43,12 +44,14 @@ func CollectSnippets(path string) map[string][]string {
 	return snippets
 }
 
-// WriteSnippets writes the snippets to the specified writer.
-func WriteSnippets(writer io.Writer, snippets map[string][]string) {
+// WriteSnippets writes the snippets matching the given tags to the specified writer.
+func WriteSnippets(writer io.Writer, snippets map[string][]string, tags []string) {
 	for tag, blocks := range snippets {
-		fmt.Fprintf(writer, "%s:\n", tag)
-		for i, block := range blocks {
-			fmt.Fprintf(writer, "Block %d:\n%s\n\n", i+1, block)
+		if len(tags) == 0 || slices.Contains(tags, tag) {
+			fmt.Fprintf(writer, "%s:\n", tag)
+			for i, block := range blocks {
+				fmt.Fprintf(writer, "Block %d:\n%s\n\n", i+1, block)
+			}
 		}
 	}
 }

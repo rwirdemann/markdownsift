@@ -9,16 +9,11 @@ all: build
 
 # Build the binary
 build:
-	go build -o $(BINARY_NAME) $(MAIN_FILE)
-
-# Install the binary to $GOPATH/bin
-install: build
-	mkdir -p $(GOPATH)/bin
-	cp $(BINARY_NAME) $(GOPATH)/bin/
+	go build -o $(GOPATH)/bin/$(BINARY_NAME) $(MAIN_FILE)
 
 # Clean built artifacts
 clean:
-	rm -f $(BINARY_NAME)
+	rm -f $(GOPATH)/bin/$(BINARY_NAME)
 
 # Run tests
 test:
@@ -28,19 +23,4 @@ test:
 test-coverage:
 	go test -v -cover
 
-# Build and run
-run: build
-	./$(BINARY_NAME)
-
-# Display help
-help:
-	@echo "Available targets:"
-	@echo "  build         - Build the binary"
-	@echo "  install       - Build and install to \$$GOPATH/bin"
-	@echo "  clean         - Remove built artifacts"
-	@echo "  test          - Run tests"
-	@echo "  test-coverage - Run tests with coverage"
-	@echo "  run           - Build and run the binary"
-	@echo "  help          - Show this help message"
-
-.PHONY: all build install clean test test-coverage run help
+.PHONY: all build clean test test-coverage
