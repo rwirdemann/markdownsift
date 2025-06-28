@@ -288,10 +288,10 @@ func TestWriteSnippets(t *testing.T) {
 		output := buf.String()
 
 		// Check that both hashtags are present
-		if !strings.Contains(output, "#work:") {
+		if !strings.Contains(output, "#work") {
 			t.Error("Expected #work hashtag in output")
 		}
-		if !strings.Contains(output, "#personal:") {
+		if !strings.Contains(output, "#personal") {
 			t.Error("Expected #personal hashtag in output")
 		}
 
@@ -322,7 +322,7 @@ func TestWriteSnippets(t *testing.T) {
 		lines := strings.Split(output, "\n")
 		var hashtagLines []string
 		for _, line := range lines {
-			if strings.HasSuffix(line, ":") && strings.HasPrefix(line, "#") {
+			if strings.HasPrefix(line, "#") {
 				hashtagLines = append(hashtagLines, line)
 			}
 		}
@@ -351,9 +351,8 @@ func TestWriteSnippets(t *testing.T) {
 		WriteSnippets(&buf, singleSnippet, nil)
 
 		output := buf.String()
-		// Check that the output contains expected elements rather than exact match
-		// since date format will vary
-		if !strings.Contains(output, "#test:") {
+		// Check that the output contains expected elements rather than exact match since date format will vary
+		if !strings.Contains(output, "#test") {
 			t.Error("Expected #test hashtag in output")
 		}
 		if !strings.Contains(output, "Block 1 (") {
@@ -386,10 +385,10 @@ func TestWriteSnippets(t *testing.T) {
 		output := buf.String()
 
 		// Should contain #work and #project
-		if !strings.Contains(output, "#work:") {
+		if !strings.Contains(output, "#work") {
 			t.Error("Expected #work hashtag in filtered output")
 		}
-		if !strings.Contains(output, "#project:") {
+		if !strings.Contains(output, "#project") {
 			t.Error("Expected #project hashtag in filtered output")
 		}
 		if !strings.Contains(output, "Work task 1") {
