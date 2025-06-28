@@ -64,9 +64,9 @@ func CollectSnippets(path string) map[string][]Block {
 func WriteSnippets(writer io.Writer, snippets map[string][]Block, tags []string) {
 	for tag, blocks := range snippets {
 		if len(tags) == 0 || slices.Contains(tags, tag) {
-			fmt.Fprintf(writer, "%s:\n", tag)
-			for i, block := range blocks {
-				fmt.Fprintf(writer, "Block %d (%s):\n%s\n\n", i+1, block.Date.Format("2006-01-02 15:04:05"), block.Content)
+			fmt.Fprintf(writer, "# Content tagged by %s\n", tag)
+			for _, block := range blocks {
+				fmt.Fprintf(writer, "%s:\n%s\n\n", block.Date.Format("2006-01-02"), block.Content)
 			}
 		}
 	}
