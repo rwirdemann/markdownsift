@@ -26,6 +26,8 @@ func main() {
 		}
 	}
 
-	snippets := markdownsift.CollectSnippets(*path)
-	markdownsift.WriteSnippets(os.Stdout, snippets, tt)
+	snippets := markdownsift.Filter(markdownsift.CollectSnippets(*path), tt)
+	for tag, blocks := range snippets {
+		markdownsift.Write(os.Stdout, tag, blocks)
+	}
 }

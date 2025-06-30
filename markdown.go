@@ -3,6 +3,7 @@ package markdownsift
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -60,12 +61,15 @@ func CollectSnippets(path string) map[string][]Block {
 	return snippets
 }
 
-// WriteSnippets writes the snippets matching the given tags to the specified writer.
-func WriteSnippets(writer io.Writer, snippets map[string][]Block, tags []string) {
-	for tag, blocks := range snippets {
-		fmt.Fprintf(writer, "# Content tagged by %s\n", tag)
-		for _, block := range blocks {
-			fmt.Fprintf(writer, "%s:\n%s\n\n", block.Date.Format("2006-01-02"), block.Content)
+const DateFormat = "2006-01-02"
+
+func Write(writer io.Writer, tag string, blocks []Block) {
+	if _, err := fmt.Fprintf(writer, "# Content tagged by %s\n", tag); err != nil {
+		log.Fatalf(err.Error())
+	}
+	for _, block := range blocks {
+		if _, err := fmt.Fprintf(writer, "%s:\n%s\n\n", block.Date.Format(DateFormat), block.Content); err != nil {
+			log.Fatalf(err.Error())
 		}
 	}
 }
