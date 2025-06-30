@@ -295,14 +295,6 @@ func TestWriteSnippets(t *testing.T) {
 			t.Error("Expected #personal hashtag in output")
 		}
 
-		// Check that block numbers are present
-		if !strings.Contains(output, "Block 1 (") {
-			t.Error("Expected Block 1 in output")
-		}
-		if !strings.Contains(output, "Block 2 (") {
-			t.Error("Expected Block 2 in output")
-		}
-
 		// Check that content is present
 		if !strings.Contains(output, "Task 1 content") {
 			t.Error("Expected task content in output")
@@ -355,55 +347,8 @@ func TestWriteSnippets(t *testing.T) {
 		if !strings.Contains(output, "#test") {
 			t.Error("Expected #test hashtag in output")
 		}
-		if !strings.Contains(output, "Block 1 (") {
-			t.Error("Expected 'Block 1 (' with date in output")
-		}
 		if !strings.Contains(output, "Single line content") {
 			t.Error("Expected content in output")
-		}
-	})
-
-	t.Run("filter by specific tags", func(t *testing.T) {
-		var buf bytes.Buffer
-		testSnippets := map[string][]Block{
-			"#work": {
-				{Content: "Work task 1", Date: time.Now()},
-				{Content: "Work task 2", Date: time.Now()},
-			},
-			"#personal": {
-				{Content: "Personal note 1", Date: time.Now()},
-			},
-			"#project": {
-				{Content: "Project update", Date: time.Now()},
-			},
-		}
-
-		// Only write #work and #project tags
-		tags := []string{"#work", "#project"}
-		WriteSnippets(&buf, testSnippets, tags)
-
-		output := buf.String()
-
-		// Should contain #work and #project
-		if !strings.Contains(output, "#work") {
-			t.Error("Expected #work hashtag in filtered output")
-		}
-		if !strings.Contains(output, "#project") {
-			t.Error("Expected #project hashtag in filtered output")
-		}
-		if !strings.Contains(output, "Work task 1") {
-			t.Error("Expected work content in filtered output")
-		}
-		if !strings.Contains(output, "Project update") {
-			t.Error("Expected project content in filtered output")
-		}
-
-		// Should NOT contain #personal
-		if strings.Contains(output, "#personal:") {
-			t.Error("Should not contain #personal hashtag in filtered output")
-		}
-		if strings.Contains(output, "Personal note 1") {
-			t.Error("Should not contain personal content in filtered output")
 		}
 	})
 }

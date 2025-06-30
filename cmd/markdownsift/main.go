@@ -25,5 +25,7 @@ func main() {
 			tt[i] = "#" + tag
 		}
 	}
-	markdownsift.WriteSnippets(os.Stdout, markdownsift.CollectSnippets(*path), tt)
+
+	snippets := markdownsift.CollectSnippets(*path)
+	markdownsift.WriteSnippets(os.Stdout, snippets, tt)
 }
