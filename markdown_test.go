@@ -156,8 +156,9 @@ Final notes`,
 			expected: map[string][]Block{
 				"#task": {
 					{Content: "Regular #task item\nTask details"},
+					{Content: "Another #task item\nMore task details"},
 				},
-				"#project": {{Content: "# heading #project\nProject description\n\nMore project info\n\nAnother #task item\nMore task details\n"}},
+				"#project": {{Content: "# heading #project\nProject description\n\nMore project info\n"}},
 				"#meeting": {{Content: "# notes #meeting\nMeeting content\n\nFinal notes"}},
 			},
 		},
