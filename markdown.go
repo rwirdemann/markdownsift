@@ -154,10 +154,10 @@ func collectHashtaggedContent(reader io.Reader, date time.Time) map[string][]Blo
 			j := i + 1
 
 			if headedBlockStarts[i] {
-				// This is a headed block - collect until next headed block or end of document
+				// This is a headed block - collect until next headed block, any hashtag line, or end of document
 				for j < len(lines) {
-					if headedBlockStarts[j] {
-						break // Stop at next headed block
+					if headedBlockStarts[j] || len(hashtagRegex.FindAllString(lines[j], -1)) > 0 {
+						break // Stop at next headed block or any hashtag line
 					}
 					block = append(block, lines[j])
 					j++
