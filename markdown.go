@@ -61,19 +61,8 @@ func CollectSnippets(path string) map[string][]Block {
 	return snippets
 }
 
-const DateFormat = "2006-01-02"
-
-func Write(writer io.Writer, tag string, blocks []Block) {
-	if _, err := fmt.Fprintf(writer, "# Content tagged by %s\n", tag); err != nil {
-		log.Fatalf(err.Error())
-	}
-	for _, block := range blocks {
-		if _, err := fmt.Fprintf(writer, "%s:\n%s\n\n", block.Date.Format(DateFormat), block.Content); err != nil {
-			log.Fatalf(err.Error())
-		}
-	}
-}
-
+// Filter returns a filtered map of snippets based on the provided tags. If no tags are provided, it returns all
+// snippets.
 func Filter(snippets map[string][]Block, tags []string) map[string][]Block {
 	if len(tags) == 0 {
 		return snippets
@@ -87,6 +76,19 @@ func Filter(snippets map[string][]Block, tags []string) map[string][]Block {
 	}
 	return filtered
 }
+
+func Write(writer io.Writer, tag string, blocks []Block) {
+	if _, err := fmt.Fprintf(writer, "# Content tagged by %s\n", tag); err != nil {
+		log.Fatalf(err.Error())
+	}
+	for _, block := range blocks {
+		if _, err := fmt.Fprintf(writer, "%s:\n%s\n\n", block.Date.Format(dateFormat), block.Content); err != nil {
+			log.Fatalf(err.Error())
+		}
+	}
+}
+
+const dateFormat = "2006-01-02"
 
 // listFiles returns a list of files in the given path that match the DefaultPattern.
 func listFiles(path string) ([]string, error) {
