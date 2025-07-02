@@ -14,7 +14,7 @@ import (
 
 const (
 	// DefaultPattern is the default pattern used to match markdown files.
-	DefaultPattern = "^\\d{4}-\\d{2}-\\d{2}\\.md$"
+	DefaultPattern = `^\d{4}-\d{2}-\d{2}(-.*)?\.md$`
 )
 
 // Block represents a content block with its associated date
