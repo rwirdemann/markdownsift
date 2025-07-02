@@ -33,6 +33,7 @@ func main() {
 		}
 	}
 
+	// Filter and CollectSnippets are functionally coupled since the have to be executed in the same order
 	snippets := markdownsift.Filter(markdownsift.CollectSnippets(*path), tt)
 	for tag, blocks := range snippets {
 		writeBlocks(tag, blocks, *output, *outputDir)
