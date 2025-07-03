@@ -7,3 +7,9 @@ leeren Zeile, sondern wenn das Dokument endet oder ein anderer Headed Block begi
 
 Ein Tag enthält mehere Blocksm gespeichert als string slice. Ändere den Typ der Slice in ein struct, dass neben dem
 string ein date enthält, das per default auf das heute datum gesetzt wird.
+
+# Fix: New line before list
+
+Die Listenerkennung ist fehlerhaft. Ist: Derzeit wird eine Liste nicht dem aktuellen Block zugeordnet, wenn vor der
+Liste eine leere Zeile steht. Soll: Eine Liste soll dem aktuellen Block zugeordnet werden, wenn die Liste ohne vorherige
+Leerzeile beginnt, oder wenn von der Liste eine Leerzeile steht.
