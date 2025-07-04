@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/rwirdemann/markdownsift"
+	"github.com/rwirdemann/markdownsift/file"
+	_os "github.com/rwirdemann/markdownsift/os"
 )
 
 func main() {
@@ -33,11 +34,21 @@ func main() {
 		}
 	}
 
-	// Filter and CollectSnippets are functionally coupled since the have to be executed in the same order
 	snippets := markdownsift.Filter(markdownsift.CollectSnippets(*path), tt)
-	for tag, blocks := range snippets {
-		writeBlocks(tag, blocks, *output, *outputDir)
+	var writer markdownsift.Writer
+	var err error
+	switch *output {
+	case "stdout":
+		writer = _os.NewWriter()
+	case "file":
+		writer, err = file.NewWriter(*outputDir)
+		if err != nil {
+			log.Println("Error:", err)
+			flag.Usage()
+			os.Exit(1)
+		}
 	}
+	markdownsift.WriteSnippets(snippets, writer)
 }
 
 func validateFlags(path, output, outputDir string) error {
@@ -51,28 +62,4 @@ func validateFlags(path, output, outputDir string) error {
 		return fmt.Errorf("output-dir is required when output is 'file'")
 	}
 	return nil
-}
-
-func writeBlocks(tag string, blocks []markdownsift.Block, output, outputDir string) {
-	writer := os.Stdout
-	if output == "file" {
-		// Create output directory if it doesn't exist
-		err := os.MkdirAll(outputDir, 0755)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		path := filepath.Join(outputDir, tag[1:]+".md")
-		file, err := os.Create(path)
-		if err != nil {
-			log.Fatal(err)
-		}
-		writer = file
-		defer func() {
-			if err := file.Close(); err != nil {
-				log.Fatal(err)
-			}
-		}()
-	}
-	markdownsift.Write(writer, tag, blocks)
 }
