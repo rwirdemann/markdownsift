@@ -31,21 +31,21 @@ go get github.com/rwirdemann/markdownsift
 package main
 
 import (
-    "fmt"
-    "os"
-    "github.com/rwirdemann/markdownsift"
+	"fmt"
+	"github.com/rwirdemann/markdownsift"
+	"os"
 )
 
 func main() {
-    // Collect all hashtag blocks from markdown files
-    snippets := markdownsift.CollectSnippets("path/to/markdown/files")
-    
-    // Write all blocks to stdout
-    markdownsift.WriteSnippets(os.Stdout, snippets, nil)
-    
-    // Or filter by specific tags
-    tags := []string{"#work", "#urgent"}
-    markdownsift.WriteSnippets(os.Stdout, snippets, tags)
+	// Collect all hashtag blocks from markdown files
+	snippets := markdownsift.CollectSnippets("path/to/markdown/files")
+
+	// Write all blocks to stdout
+	markdownsift.WriteSnippets(os.Stdout, snippets, nil)
+
+	// Or filter by specific tags
+	tags := []string{"#work", "#urgent"}
+	markdownsift.WriteSnippets(os.Stdout, snippets, tags)
 }
 ```
 
