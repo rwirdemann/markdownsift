@@ -164,7 +164,9 @@ func collectHashtaggedContent(reader io.Reader, date time.Time) map[string][]Blo
 				}
 			} else {
 				// This is a regular block - collect until empty line
-				for j < len(lines) && strings.TrimSpace(lines[j]) != "" {
+				for j < len(lines) &&
+					(strings.TrimSpace(lines[j]) != "" ||
+						(j+1 < len(lines) && strings.TrimSpace(lines[j]) == "") && strings.HasPrefix(lines[j+1], "-")) {
 					block = append(block, lines[j])
 					j++
 				}

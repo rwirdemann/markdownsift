@@ -13,3 +13,7 @@ string ein date enthält, das per default auf das heute datum gesetzt wird.
 Die Listenerkennung ist fehlerhaft. Ist: Derzeit wird eine Liste nicht dem aktuellen Block zugeordnet, wenn vor der
 Liste eine leere Zeile steht. Soll: Eine Liste soll dem aktuellen Block zugeordnet werden, wenn die Liste ohne vorherige
 Leerzeile beginnt, oder wenn von der Liste eine Leerzeile steht.
+
+# Feature: Date Links
+Die Funktion markdownswift.WriteSnippets gibt vor jedem Block das Datum aus. Gib stattdessen einen Markdown-Link aus,
+der auf die Datei zeigt, deren Namen dem Datum entspricht.

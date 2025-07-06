@@ -207,6 +207,16 @@ Final section content`,
 				"#work": {{Content: "### Another Section #work\nFinal section content"}},
 			},
 		},
+		{
+			name: "markdown section with list",
+			input: `This is the header for the list #items
+
+- list item 1
+- list item 2`,
+			expected: map[string][]Block{
+				"#items": {{Content: "This is the header for the list #items\n\n- list item 1\n- list item 2"}},
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// Writer provides methods to write snippet data to an output target like stdout or a file.
 type Writer interface {
 	Create(name string) error
 	Write(p []byte) (n int, err error)
