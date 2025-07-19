@@ -174,6 +174,7 @@ func collectHashtaggedContent(reader io.Reader, date time.Time) map[string][]Blo
 
 			// Add the block to each hashtag
 			blockText := strings.Join(block, "\n")
+			blockText = strings.TrimRight(blockText, "\n")
 			blockInstance := Block{
 				Content: blockText,
 				Date:    date,

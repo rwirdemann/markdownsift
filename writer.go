@@ -22,7 +22,7 @@ func WriteSnippets(snippets map[string][]Block, writer Writer) {
 				_ = writer.Close()
 			}(writer)
 
-			if _, err := fmt.Fprintf(writer, "# Content tagged by %s\n", tag); err != nil {
+			if _, err := fmt.Fprintf(writer, "# Content tagged by %s\n\n", tag); err != nil {
 				log.Fatalf(err.Error())
 			}
 			for _, block := range blocks {
