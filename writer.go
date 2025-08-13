@@ -26,7 +26,7 @@ func WriteSnippets(snippets map[string][]Block, writer Writer) {
 				log.Fatalf(err.Error())
 			}
 			for _, block := range blocks {
-				if _, err := fmt.Fprintf(writer, "%s:\n%s\n\n", block.Date.Format(dateFormat), block.Content); err != nil {
+				if _, err := fmt.Fprintf(writer, "[%s](../%s.md):\n%s\n\n", block.Date.Format(dateFormat), block.Date.Format(dateFormat), block.Content); err != nil {
 					log.Fatalf(err.Error())
 				}
 			}
