@@ -12,12 +12,12 @@ mds --help
 
 ### Paragraphs
 
-A file `2025-07-20.md` that contains a paragraph tagged with `#tougths` 
+A file `2025-07-20.md` that contains a paragraph tagged with `#thoughts` 
 
 ```
 Started the year with ambitious plans. #thoughts
 ```
-will be extracted into a topic file `thougts.md`:
+will be extracted into a topic file `thoughts.md`:
 
 ```
 # Content tagged with #thoughts
@@ -25,9 +25,9 @@ will be extracted into a topic file `thougts.md`:
 2025-07-20:
 Started the year with ambitious plans. #thoughts
 ```
-A tagged paragraph ends with a newline, thus everthing before the tagged line and everthing after the new line is not exctracted.
+A tagged paragraph ends with a newline, thus everything before the tagged line and everything after the new line is not extracted.
 
-## TODOso
+## TODOs
 
 - [ ] Make file pattern configurable
 - [ ] Sort blocks in descent order, given by cli flag

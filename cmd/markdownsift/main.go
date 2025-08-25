@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -16,13 +17,18 @@ func main() {
 	path := flag.String("path", "/Users/ralfwirdemann/Documents/zettelkasten", "source directory to parse")
 	tags := flag.String("tags", "", "comma separated list of tags to be parsed (hash sign omitted, default = empty is all)")
 	output := flag.String("output", "stdout", "output destination. values (stdout, file)")
-	outputDir := flag.String("output-dir", "/Users/ralfwirdemann/Documents/zettelkasten/topics", "output directory for file output")
+	outputDir := flag.String("output-dir", "/Users/ralfwirdemann/Documents/zettelkasten/tags", "output directory for file output")
+	debug := flag.Bool("debug", false, "set log level to debug")
 
 	flag.Parse()
 	if err := validateFlags(*path, *output, *outputDir); err != nil {
 		log.Println("Error:", err)
 		flag.Usage()
 		os.Exit(1)
+	}
+
+	if *debug {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
 
 	// Prepend tags with hash sign

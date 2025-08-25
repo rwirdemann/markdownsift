@@ -3,18 +3,19 @@ package markdownsift
 import (
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
 	"slices"
+	"sort"
 	"strings"
 	"time"
 )
 
 const (
 	// DefaultPattern is the default pattern used to match markdown files.
-	DefaultPattern = `^\d{4}-\d{2}-\d{2}(-.*)?\.md$`
+	DefaultPattern = `^\d{4}-\d{2}-\d{2}(-[a-zA-Z0-9-]+)*\.md$`
 )
 
 // Block represents a content block with its associated date
@@ -37,6 +38,7 @@ func CollectSnippets(path string) map[string][]Block {
 		func() {
 			// Parse date from filename (format: YYYY-MM-DD.md)
 			filename := filepath.Base(file)
+			slog.Debug("parsing", "file", filename)
 			dateStr := strings.TrimSuffix(filename, ".md")
 			fileDate, err := time.Parse("2006-01-02", dateStr)
 			if err != nil {
@@ -58,6 +60,14 @@ func CollectSnippets(path string) map[string][]Block {
 			}
 		}()
 	}
+
+	// Sort blocks by date descending for each tag
+	for tag := range snippets {
+		sort.Slice(snippets[tag], func(i, j int) bool {
+			return snippets[tag][i].Date.After(snippets[tag][j].Date)
+		})
+	}
+
 	return snippets
 }
 
@@ -75,17 +85,6 @@ func Filter(snippets map[string][]Block, tags []string) map[string][]Block {
 		}
 	}
 	return filtered
-}
-
-func Write(writer io.Writer, tag string, blocks []Block) {
-	if _, err := fmt.Fprintf(writer, "# Content tagged by %s\n", tag); err != nil {
-		log.Fatalf(err.Error())
-	}
-	for _, block := range blocks {
-		if _, err := fmt.Fprintf(writer, "%s:\n%s\n\n", block.Date.Format(dateFormat), block.Content); err != nil {
-			log.Fatalf(err.Error())
-		}
-	}
 }
 
 const dateFormat = "2006-01-02"
